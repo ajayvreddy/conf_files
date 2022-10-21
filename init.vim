@@ -16,11 +16,10 @@ Plug 'itchyny/lightline.vim'
 Plug 'ctrlpvim/ctrlp'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
-" Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'morhetz/gruvbox'
+
 Plug 'NLKNguyen/papercolor-theme'
 Plug 'overcache/NeoSolarized'
-" Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+
 Plug 'ervandew/supertab'
 Plug 'xolox/vim-notes'
 Plug 'xolox/vim-misc'
@@ -126,28 +125,12 @@ map <leader>bd   :bufdo bd!<cr>
 map <leader>b    obreakpoint()<esc>
 map <silent><leader>cd   :cd %:p:h<cr>
 map ;wd :echo expand('%:p:h')<cr>
-map ;as :cd /proj_risc/user_dev/areddy/ascalon<cr>
-map ;ax :cd /proj_risc/user_dev/areddy/ascalon/testgen/sting_aux<cr>
-map ;sr :cd /tools_vendor/valtrix/STING/2.1.4/<cr>
-map ;tg :cd /proj_risc/user_dev/areddy/ascalon/testgen<cr>
-map ;isg :cd /proj_risc/user_dev/areddy/ascalon/isg/<cr>
-map ;tl :cd /proj_risc/user_dev/areddy/ascalon/dv/core/testlists<cr>
 try
   set switchbuf=useopen,usetab,newtab
   set stal=2
 catch
 endtry
-:set path+=/proj_risc/user_dev/areddy/ascalon
-:set path+=/proj_risc/user_dev/areddy/ascalon/isg
-:set path+=/proj_risc/user_dev/areddy/ascalon/isg/src
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/fe
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/mc
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/ls
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests/bringup
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests/Exceptions
+:set path+=/projext/user/aon " helps in gf
 au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 
 " Move a line of text using Ctrl+[jk]
