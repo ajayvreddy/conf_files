@@ -10,12 +10,12 @@ syntax enable
 set runtimepath^=~/.vim/bundle/ctrlp.vim
 call plug#begin()
   Plug 'preservim/nerdcommenter'
+  Plug 'NLKNguyen/papercolor-theme'
   Plug 'jiangmiao/auto-pairs'
   Plug 'preservim/tagbar'
   Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
   Plug 'itchyny/lightline.vim'
   Plug 'ctrlpvim/ctrlp'
-  Plug 'overcache/NeoSolarized'
   Plug 'ervandew/supertab'
   Plug 'xolox/vim-notes'
   Plug 'xolox/vim-misc'
@@ -23,8 +23,7 @@ call plug#end()
 
 " colors
 set bg=light
-" set bg=dark
-colorscheme NeoSolarized
+colorscheme PaperColor
 
 " function keys mapping
 nnoremap <silent> <F8> :TagbarToggle<CR>
@@ -60,25 +59,6 @@ map <silent><leader><cr> :noh<cr>
 map <leader>bd   :bufdo bd!<cr>
 map <leader>b    obreakpoint()<esc>
 map <silent><leader>cd   :cd %:p:h<cr>
-" project mapping
-map ;wd :echo expand('%:p:h')<cr>
-map ;as :cd /proj_risc/user_dev/areddy/ascalon<cr>
-map ;ax :cd /proj_risc/user_dev/areddy/ascalon/sting_aux<cr>
-map ;sr :cd /tools_vendor/valtrix/STING/2.1.4/<cr>
-map ;tg :cd /proj_risc/user_dev/areddy/ascalon/testgen<cr>
-map ;isg :cd /proj_risc/user_dev/areddy/ascalon/isg/<cr>
-map ;tl :cd /proj_risc/user_dev/areddy/ascalon/dv/core/testlists<cr>
-:set path+=/proj_risc/user_dev/areddy/ascalon
-:set path+=/proj_risc/user_dev/areddy/ascalon/isg
-:set path+=/proj_risc/user_dev/areddy/ascalon/isg/src
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/fe
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/mc
-:set path+=/proj_risc/user_dev/areddy/ascalon/rtl/ls
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests/bringup
-:set path+=/proj_risc/user_dev/areddy/ascalon/dv/core/testlists/tests/Exceptions
 
 au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 autocmd BufEnter,BufRead *.\(sv|v$\)     :setlocal filetype=verilog
@@ -147,7 +127,8 @@ function! ForAllMatches (command, options)
     let orig_pos = getpos('.')
     let in_visual = get(a:options, 'visual', 0)
     let start_line = in_visual ? getpos("'<'")[1] : 1
-    let end_line   = in_visual ? getpos("'>'")[1] : line('$')  let inverted = get(a:options, 'inverse', 0)
+    let end_line   = in_visual ? getpos("'>'")[1] : line('$')
+    let inverted = get(a:options, 'inverse', 0)
     let deleting = a:command == 'delete'
     let sensitive = &ignorecase && &smartcase && @/ =~ '\u' ? '\C' : ''
     exec 'silent lvimgrep /' . sensitive . @/ . '/j %'
@@ -222,8 +203,93 @@ let g:lightline = {
       \ 'active':             { 'left':  [['relative_path'], ],
       \                         'right': [['line_col'], ['filetype'], ['cwd']] },
       \ 'component_function': { 'cwd': 'CWD',  'line_col': 'LineColumn', 'relative_path': 'RelativePath'},
-      \ }
+\ }
 
+noremap  <leader>v      :echom VA_dissect(expand('<cword>')) <CR>
+function VA_dissect(num)
+    let str = a:num
+    let str = substitute(str,'^0x\|^0\+\|h$\|_','','g')
+    let str = "0x".str
+    let str = float2nr(floor(str/pow(2,12))) " 12
+    let vpn0 = (and(str, 0x1ff))
+    let vpn0 = Convert_int_to_hex(vpn0). ":". Convert_int_to_hex(vpn0*8)
+    let str = float2nr(floor(str/pow(2,9)))  " 12+9
+    let vpn1 = and(str, 0x1ff)
+    let vpn1 = Convert_int_to_hex(vpn1). ":". Convert_int_to_hex(vpn1*8)
+    let str = float2nr(floor(str/pow(2,9)))  " 21+9
+    let vpn2 = and(str, 0x1ff)
+    let vpn2 = Convert_int_to_hex(vpn2). ":". Convert_int_to_hex(vpn2*8)
+    let str = float2nr(floor(str/pow(2,9)))   " 30+9
+    let vpn3 = and(str, 0x1ff)
+    let vpn3 = Convert_int_to_hex(vpn3). ":". Convert_int_to_hex(vpn3*8)
+    let str = float2nr(floor(str/pow(2,9))) " 39+9
+    let vpn4 = and(str, 0x1ff)
+    let vpn4 = Convert_int_to_hex(vpn4). ":". Convert_int_to_hex(vpn4*8)
+    let str = float2nr(floor(str/pow(2,9))) " 48+9
+    let canonical = Convert_int_to_hex(and(str, 0x1ff))
+    " 0x7faaaaaaa
+    return "canonical=".canonical." vpn4=".vpn4." vpn3=".vpn3." vpn2=".vpn2." vpn1=".vpn1." vpn0=".vpn0 .  "                   value:offset in the table "
+endfunc
+
+noremap  <leader>p      :echom PTE_dissect(expand('<cword>')) <CR>
+function PTE_dissect(num)
+    let str = a:num
+    let str = substitute(str,'^0x\|^0\+\|h$\|_','','g')
+    let str = "0x".str
+    let v = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let r = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let w = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let x = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let u = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let g = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let a = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let d = and(str, 1)
+    let str = float2nr(floor(str/2))
+    let rsw = and(str, 3)
+    let str = float2nr(floor(str/pow(2,2)))
+    let ppn = Convert_int_to_hex(and(str, 0xfffffffffff))
+    let str = float2nr(floor(str/pow(2,44)))
+    let reserved = Convert_int_to_hex(and(str, 0x7f))
+    let str = float2nr(floor(str/pow(2,7)))
+    let pbmt = and(str, 3)
+    let str = float2nr(floor(str/pow(2,2)))
+    let n = and(str, 1)
+    return "n=".n." pbmt=".pbmt." reserved=".reserved." ppn=".ppn." rsw=".rsw." d=". d ." a=". a. " g=".g." u=".u." x=".x." w=".w." r=".r." v=".v
+endfunc
+function Convert_int_to_hex(num)
+    let integer = a:num
+    let hex = ""
+    while integer > 0
+        let remainder = integer % 16
+        if remainder < 10
+            let hex =  remainder . hex
+        elseif remainder == 10
+            let hex =  "a" . hex
+        elseif remainder == 11
+            let hex =   "b" . hex
+        elseif remainder == 12
+            let hex =   "c" . hex
+        elseif remainder == 13
+            let hex =   "d" . hex
+        elseif remainder == 14
+            let hex =   "e" . hex
+        elseif remainder == 15
+            let hex =   "f" . hex
+        endif
+        let integer = integer / 16
+    endwhile
+    if hex == ""
+        let hex = 0
+    endif
+    return "0x".hex
+endfunc
 noremap  <C-h>      :echom Hex_to_binary(expand('<cword>')) <CR>
 vnoremap <C-h> <esc>:echom V_Hex_to_binary() <CR>
 function V_Hex_to_binary()
@@ -233,7 +299,6 @@ function V_Hex_to_binary()
     let hex = join(reverse_res,'')
     return Hex_to_binary(hex)
 endfunc
-
 function Hex_to_binary(num)  "Hex to binary only (Not decimals)
     let str = a:num
     let actual_nr = "0x".str
@@ -297,7 +362,7 @@ let g:NERDCompactSexyComs        = 1
 let g:NERDDefaultAlign           = 'left'
 let g:NERDAltDelims_java         = 1
 let g:NERDCustomDelimiters       = {'c': {'left': '/**', 'right': '*/'}, 'conf': {'left': '#'}, 'list': {'left': '#'},  'asm': {'left': '#'} }
-et g:NERDCommentEmptyLines      = 1
+let g:NERDCommentEmptyLines      = 1
 let g:NERDTrimTrailingWhitespace = 1
 let g:NERDToggleCheckAllLines    = 1
 map <silent> <C-c>  \c<space>
@@ -313,4 +378,3 @@ let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
 " supertab
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabContextDefaultCompletionType = "<c-n>"
-    
